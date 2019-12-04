@@ -1,0 +1,3 @@
+#! /bin/sh
+
+snapctl restart ${SNAP_NAME}.remote 2>&1 || true

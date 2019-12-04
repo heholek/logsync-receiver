@@ -1,0 +1,42 @@
+name: logsync-receiver
+base: core18
+version: '0.2'
+summary: Run receiving server for http/https logs
+description: |
+  Simple example snap to show how to receive journal messages from a device
+  on a remote journal server.
+
+  Currently only the http (not https!) protocol is supported.
+
+grade: stable
+confinement: strict
+
+plugs:
+  config-logsync:
+    interface: system-files
+    write:
+      - /etc/systemd/journal-remote.conf
+
+hooks:
+  configure:
+    plugs:
+      - config-logsync
+
+apps:
+  remote:
+    command: lib/systemd/systemd-journal-remote --listen-http=-3 --output=$SNAP_DATA
+    plugs:
+      - config-logsync
+      - network-bind
+      - network
+      - time-control # this quietens log spam at access of /proc/1/environ
+    daemon: simple
+    sockets:
+      systemd-journal-remote:
+        listen-stream: 19532
+
+parts:
+  remote:
+    plugin: nil
+    stage-packages:
+      - systemd-journal-remote

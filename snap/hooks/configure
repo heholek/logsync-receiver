@@ -1,0 +1,55 @@
+#!/bin/sh -e
+
+CONFIG="$SNAP_DATA/journal-remote.conf"
+
+# Store the encoded file and return the path
+base64ToFile() {
+  local src=$1
+  local filename=$2
+
+  # Check if we have a file path
+  if [ -f "$src" ]; then
+    echo $src
+    return
+  fi
+
+  # Should be a base64-encoded file
+  echo $src | base64 -d > $filename
+  echo $filename
+}
+
+# Get the config values
+cert="$(snapctl get cert)"
+key="$(snapctl get key)"
+ca="$(snapctl get ca)"
+
+if ! touch $CONFIG; then
+  echo "need write access to $CONFIG !!!"
+  echo "please run 'snap connect ${SNAP_NAME}:config-logsync"
+  echo
+  echo "disabling service for the moment"
+  snapctl stop ${SNAP_NAME}.remote
+  exit 0
+fi
+
+# Create the config file (overwriting the existing one)
+echo "Setting up the configuration file"
+echo "[Remote]" > $CONFIG
+
+# Add the TLS certificate options
+if [ -n "$cert" ]; then
+    filename=$(base64ToFile "$cert" "/var/snap/${SNAP_NAME}/current/upload.cert")
+    echo "ServerCertificateFile=$filename" >> $CONFIG
+fi
+if [ -n "$key" ]; then
+    filename=$(base64ToFile "$key" "/var/snap/${SNAP_NAME}/current/upload.key")
+    echo "ServerKeyFile=$filename" >> $CONFIG
+fi
+if [ -n "$ca" ]; then
+    filename=$(base64ToFile "$ca" "/var/snap/${SNAP_NAME}/current/upload.ca")
+    echo "TrustedCertificateFile=$filename" >> $CONFIG
+fi
+
+# Restart the service
+echo "Restarting the service"
+snapctl restart ${SNAP_NAME}.remote
