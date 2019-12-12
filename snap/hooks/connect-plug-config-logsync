@@ -1,9 +1,0 @@
-#! /bin/sh
-
-CONFIG="$SNAP_DATA/journal-remote.conf"
-
-# Create the config file (overwriting the existing one)
-echo "Setting up the configuration file"
-echo "[Remote]" > $CONFIG
-
-snapctl restart ${SNAP_NAME}.remote 2>&1 || true

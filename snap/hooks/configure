@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-CONFIG="$SNAP_DATA/journal-remote.conf"
+CONFIG="$SNAP_DATA/systemd/journal-remote.conf"
 
 # Store the encoded file and return the path
 base64ToFile() {
